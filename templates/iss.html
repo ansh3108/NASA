@@ -1,0 +1,26 @@
+{% extends "base.html"}
+{% block content %}
+<div class="container">
+    <h1>ISS Tracker</h1>
+    <p>Live coordinates of ISS as it orbits earth.</p>
+    <div id="map"></div>
+</div>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const map = L.map('map').setView([0, 0],2);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png').addTo(map);
+    const marker = L.marker([0,0]).addTo(map);
+
+    async function updateISS(){
+        const response = await fetch('http://api.open-notify.org/iss-now.json');
+        const data = await response.json();
+        const { latitude, longitude } = data.iss_position;
+        marker.setLatLng([latitude, longitude]);
+        map.panTo([latitude, longitude]);
+    }
+    setInterval(updateISS, 5000);
+    updateISS();
+</script>
+{%endblock%}
