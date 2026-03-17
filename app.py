@@ -3,7 +3,47 @@ from flask import Flask, render_template
 
 app = Flask(__name__)
 
-NASA_API_KEY = 'HJ9wMZq8bcduhcQCP8jKywhrKiUrK2sXRMwJLk3P'
+NASA_API_KEY = 'HJ9wMZq8bcduhcQCP8jKywhrKiUrK2sXRMwJLk3P' #pls dont abuse
+
+
+def fetch_mars_gallery_photos(limit=12):
+    url = "https://images-api.nasa.gov/search"
+    params = {
+        "q": "curiosity rover mars",
+        "media_type": "image",
+        "year_start": "2012",
+    }
+
+    response = requests.get(url, params=params, timeout=10)
+    response.raise_for_status()
+
+    items = response.json().get("collection", {}).get("items", [])
+    photos = []
+
+    for item in items:
+        data = item.get("data", [{}])[0]
+        image_links = [
+            link for link in item.get("links", [])
+            if link.get("render") == "image" and link.get("href")
+        ]
+
+        if not image_links:
+            continue
+
+        photos.append(
+            {
+                "img_src": image_links[0]["href"],
+                "earth_date": data.get("date_created", "Unknown")[:10],
+                "camera": {
+                    "full_name": data.get("title", "Curiosity Rover Archive")
+                },
+            }
+        )
+
+        if len(photos) >= limit:
+            break
+
+    return photos
 
 @app.route('/')
 def index():
@@ -14,29 +54,21 @@ def index():
 
 @app.route('/mars')
 def mars():
-    
-    url = f"https://api.nasa.gov/mars-photos/api/v1/rovers/spirit/photos?sol=1000&api_key={NASA_API_KEY}"
-    
     try:
-        res = requests.get(url, timeout=15) 
-        res.raise_for_status()
-        data = res.json()
-        
-        photos = data.get('photos', [])[:12]
-        
-        if not photos:
-            return "NASA returned 200 OK but the photo list is empty. Try Sol 500."
-
-        return render_template('mars.html', photos=photos)
-
-    except Exception as e:
-        return f"Network Error: {e}. If you see Name.com, your DNS is blocking NASA."
-
+        photos = fetch_mars_gallery_photos()
+        return render_template('mars.html', photos=photos, error_message=None)
+    except requests.RequestException:
+        return render_template(
+            'mars.html',
+            photos=[],
+            error_message='Mars gallery is temporarily unavailable. Please try again later.'
+        )
 
 @app.route('/iss')
 def iss():
     return render_template('iss.html')
 
-
 if __name__ == '__main__':
     app.run(debug=True)
+
+

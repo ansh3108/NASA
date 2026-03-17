@@ -1,18 +1,28 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="container">
-    <span class="tech-text" style="color: var(--accent)">> source/ curiosity_rover_api</span>
+    <span class="tech-text" style="color: var(--accent)">> source / nasa_image_library_curiosity_archive</span>
     <h1>Mars Gallery</h1>
-    <p>Showing 12 most recent transmissions from the surface of Mars!</p>
+    <p>Viewing Curiosity rover imagery from NASA's public image archive.</p>
 </div>
+
 <div class="full-bleed">
+    {% if error_message %}
+    <div class="container">
+        <p style="color: #ff8a8a; font-family: 'IBM Plex Mono'; font-size: 0.85rem;">
+            {{ error_message }}
+        </p>
+    </div>
+    {% endif %}
+
     <div class="grid">
         {% for photo in photos %}
         <div class="grid-item">
-            <img src="{{ photo.img_src }}" alt="Mars surface">
-            <div style="margin-top: 10px; font-size: 0.75rem; font-family: 'IBM Plex Mono';opacity:0.8;">
-                <span style="color: var(--accent);">CAM:</span> {{ photo.camera.full_name }} <br>
-                <span style="color: var(--accent);">DATE: </span> {{ photo.earth_date }}
+            <img src="{{ photo.img_src }}" alt="Curiosity rover archive image">
+            
+            <div style="margin-top: 10px; font-size: 0.75rem; font-family: 'IBM Plex Mono'; opacity: 0.8;">
+                <span style="color: var(--accent);">TITLE:</span> {{ photo.camera.full_name }}<br>
+                <span style="color: var(--accent);">DATE:</span> {{ photo.earth_date }}
             </div>
         </div>
         {% endfor %}
@@ -21,7 +31,7 @@
 
 <div class="container">
     <p style="font-size: 0.8rem; opacity: 0.6;">
-        // All images are fetched through NASA's Rover Photos API. <br>
-        // Data is updates as of most recent rover sync.
+        // All images fetched via NASA's Image and Video Library API.
     </p>
 </div>
+{% endblock %}
